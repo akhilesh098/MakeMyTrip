@@ -4,5 +4,7 @@ const bookingController = require('../controllers/booking');
 
 router.post('/booking', bookingController.postbooking);
 router.get('/booking/:id', bookingController.getbookingID);
+router.get('/booking/account/:id', bookingController.getBookingByAcccountID);
+router.get('/booking/email/:email',bookingController.getBookingByEmail);
 
 module.exports = router;

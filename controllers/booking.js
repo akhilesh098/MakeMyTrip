@@ -42,7 +42,27 @@ exports.getbookingID = (req, res, next) => {
             });
         });
         
-        
-        
+    })
+}
+exports.getBookingByAcccountID = (req, res, next) => {
+    const accountID = req.params.id;
+    User.findById(accountID).then(user => {
+            console.log(user);
+        Booking.find({userEmailID: user.userEmailID}).then( booking => {
+            res.json(
+                booking.map(b =>
+                  `{ "uuid": "${accountID}","bookingID": "${b._id}", "userEmailID": "${b.userEmailID}","travellers" : "${b.travellersEmailID}","dateAdded" : "${b.dateAdded}"}
+                  `
+                ).join('')
+              )
+              //res.send(booking);
+        })
+    })
+}
+exports.getBookingByEmail = (req, res,next) => {
+    const email = req.params.email;
+
+    Booking.find({ $or:[{userEmailID: email }, { travellersEmailID : email} ]}).then(booking=>{
+        res.send(booking);
     })
 }

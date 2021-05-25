@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 const bookingSchema = new Schema({
     userEmailID: {
         type: String,
+        required: true
     },
     travellersEmailID: [String],
     dateAdded: {

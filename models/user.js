@@ -6,6 +6,10 @@ const userSchema = new Schema({
     userEmailID: {
         type: String,
         required: true
+    },
+    phoneNumber: {
+        type: Number,
+        required: true
     }
 })
 
