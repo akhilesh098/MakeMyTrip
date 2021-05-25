@@ -71,6 +71,22 @@ exports.getBookingByEmail = (req, res,next) => {
     const email = req.params.email;
 
     Booking.find({ $or:[{userEmailID: email }, { travellersEmailID : email} ]}).then(booking=>{
-        res.send(booking);
+       
+        booking.forEach(b => {
+            User.find({userEmailID: b.userEmailID}).then(user => {
+                res.send(
+                    booking.map(b =>
+                    `{ 
+                        "uuid": "${user[0]._id}",
+                       "bookingID": "${b._id}",
+                       "userEmailID": "${b.userEmailID}",
+                       "travellers" : "${b.travellersEmailID}",
+                       "dateAdded" : "${b.dateAdded}"
+                    },
+                    `
+                    ).join('')
+                  )
+            })
+        })
     })
 }
