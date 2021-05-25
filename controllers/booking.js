@@ -1,3 +1,4 @@
+const booking = require('../models/booking');
 const Booking = require('../models/booking');
 const User = require('../models/user');
 
@@ -48,45 +49,63 @@ exports.getbookingID = (req, res, next) => {
 }
 exports.getBookingByAcccountID = (req, res, next) => {
     const accountID = req.params.id;
+    let bookingID;
     User.findById(accountID).then(user => {
-        Booking.find({userEmailID: user.userEmailID}).then( booking => {
+        Booking.find({userEmailID: user.userEmailID}).then(booking => {
+            var bookingWithUuid = [];
 
-            res.send(
+            booking.map(b => {
+                //replacingID with booking_id
+                const x = {
+                    uuid : accountID,
+                    bookingID : b. _id,
+                    userEmailID : b.userEmailID,
+                    travellers : b.travellersEmailID,
+                    dateAdded : b.dateAdded,
+                }
+
+                bookingWithUuid.push(x);
+            })
+
+            res.send(bookingWithUuid);
+
+            /*res.json(
                 booking.map(b =>
-                `{ 
-                    "uuid": "${accountID}",
-                   "bookingID": "${b._id}",
-                   "userEmailID": "${b.userEmailID}",
-                   "travellers" : "${b.travellersEmailID}",
-                   "dateAdded" : "${b.dateAdded}"
-                },
-                `
+                  `{ "uuid": "${accountID}","bookingID": "${b._id}", "userEmailID": "${b.userEmailID}","travellers" : "${b.travellersEmailID}","dateAdded" : "${b.dateAdded}"}
+                  `
                 ).join('')
-              )
-              //res.send(booking1);
+              )*/
         })
     })
 }
-exports.getBookingByEmail = (req, res,next) => {
+exports.getBookingByEmail = async (req, res,next) => {
     const email = req.params.email;
+    let arr = [];
 
-    Booking.find({ $or:[{userEmailID: email }, { travellersEmailID : email} ]}).then(booking=>{
-       
-        booking.forEach(b => {
-            User.find({userEmailID: b.userEmailID}).then(user => {
-                res.send(
-                    booking.map(b =>
-                    `{ 
-                        "uuid": "${user[0]._id}",
-                       "bookingID": "${b._id}",
-                       "userEmailID": "${b.userEmailID}",
-                       "travellers" : "${b.travellersEmailID}",
-                       "dateAdded" : "${b.dateAdded}"
-                    },
-                    `
-                    ).join('')
-                  )
-            })
-        })
-    })
+
+    let user = await User.find({ userEmailID : email });
+    let bookings = await Booking.find({userEmailID: email});
+    arr = bookings.map(b=> { 
+                return {
+                    uuid: user[0]._id,
+                    bookingID : b. _id,
+                    userEmailID : b.userEmailID,
+                    travellers : b.travellersEmailID,
+                    dateAdded : b.dateAdded
+                	}
+    			});
+    
+    bookings = await Booking.find({travellersEmailID: email});
+    for(const b of bookings) {
+    	const user = await User.find({userEmailID: b.userEmailID});
+    	arr.push({
+    		uuid: user[0]._id,
+            bookingID : b._id,
+            userEmailID : b.userEmailID,
+            travellers : b.travellersEmailID,
+            dateAdded : b.dateAdded
+    	});
+    }
+   
+   res.send(arr);
 }
