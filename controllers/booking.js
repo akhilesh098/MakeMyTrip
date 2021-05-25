@@ -4,13 +4,7 @@ const User = require('../models/user');
 exports.postbooking = (req, res, next) => {
    const userEmailID = req.body.userEmailID;
    const travellers = [req.body.traveller1, req.body.traveller2];
-   console.log(req.body);
-   console.log(travellers);
-  /* User.find(userEmailID =>{
-       if(!userEmailID){
-           res.redirect("/booking");
-       }
-   })*/
+
     const booking = new Booking({
         
         userEmailID: userEmailID,
@@ -20,7 +14,15 @@ exports.postbooking = (req, res, next) => {
         .then(result =>{
             console.log('booking added!');
             console.log(booking);
-            res.send(booking);
+            User.find({userEmailID:booking.userEmailID}).then(user => {
+                res.send({bookingID: booking._id,
+                    uuid: user[0]._id,
+                    userEmailID: booking.userEmailID,
+                    travellers: booking.travellersEmailID,
+                    dateAdded: booking.dateAdded
+                });
+            })
+            
         })
         .catch(err => {
             console.log(err);
@@ -47,15 +49,21 @@ exports.getbookingID = (req, res, next) => {
 exports.getBookingByAcccountID = (req, res, next) => {
     const accountID = req.params.id;
     User.findById(accountID).then(user => {
-            console.log(user);
         Booking.find({userEmailID: user.userEmailID}).then( booking => {
-            res.json(
+
+            res.send(
                 booking.map(b =>
-                  `{ "uuid": "${accountID}","bookingID": "${b._id}", "userEmailID": "${b.userEmailID}","travellers" : "${b.travellersEmailID}","dateAdded" : "${b.dateAdded}"}
-                  `
+                `{ 
+                    "uuid": "${accountID}",
+                   "bookingID": "${b._id}",
+                   "userEmailID": "${b.userEmailID}",
+                   "travellers" : "${b.travellersEmailID}",
+                   "dateAdded" : "${b.dateAdded}"
+                },
+                `
                 ).join('')
               )
-              //res.send(booking);
+              //res.send(booking1);
         })
     })
 }
