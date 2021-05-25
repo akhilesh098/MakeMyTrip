@@ -10,6 +10,7 @@ const MONGODB_URI = "mongodb+srv://Akhilesh:unplugged@cluster0.5efoz.mongodb.net
 const bookingRoutes = require('./routes/booking');
 
 app.use(bodyParser.urlencoded({ extended: false }));
+//app.use(bodyParser);
 app.use(express.static(path.join(__dirname, 'public')));
 
 console.log("server up");

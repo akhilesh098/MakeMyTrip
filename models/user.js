@@ -3,12 +3,8 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
     
-    bookerEmailID: {
+    userEmailID: {
         type: String,
-        required: true
-    },
-    phoneNumber: {
-        type: Number,
         required: true
     }
 })
