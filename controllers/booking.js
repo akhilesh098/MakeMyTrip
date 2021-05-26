@@ -7,7 +7,11 @@ var redis = redisClient(6379, 'localhost');
 exports.postbooking = (req, res, next) => {
    const userEmailID = req.body.userEmailID;
    const travellers = [req.body.traveller1, req.body.traveller2];
-
+   User.find({userEmailID: userEmailID}).then(user => {
+    if(!user[0]){
+        res.send("No such user email registered");
+    }
+    });
     const booking = new Booking({
         
         userEmailID: userEmailID,
@@ -17,7 +21,7 @@ exports.postbooking = (req, res, next) => {
         .then(result =>{
             console.log('booking added!');
             console.log(booking);
-            User.find({userEmailID:booking.userEmailID}).then(user => {
+            User.find({userEmailID: booking.userEmailID}).then(user => {
                 res.send({bookingID: booking._id,
                     uuid: user[0]._id,
                     userEmailID: booking.userEmailID,
