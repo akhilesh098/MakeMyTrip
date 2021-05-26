@@ -4,6 +4,7 @@ const User = require('../models/user');
 var redisClient = require('redis').createClient;
 var redis = redisClient(6379, 'localhost');
 
+
 exports.postbooking = (req, res, next) => {
     let flag = 0;
    const userEmailID = req.body.userEmailID;
@@ -129,7 +130,7 @@ redis.get(email, async (err, result) => {
     if (err) throw err;
 
     if (result) {
-        console.log("resdis hit")
+        console.log("redis hit")
         res.send(JSON.parse(result));
     }
     else {
@@ -161,5 +162,51 @@ redis.get(email, async (err, result) => {
     });
     }
 });
+
+}
+
+exports.getBookingByPhoneNumber = async (req,res,next) => {
+
+    const phoneNumber = req.params.phonenumber;
+    let arr = [];
+    redis.get(phoneNumber, async (err, result) => {
+        if (err) throw err;
+    
+        if (result) {
+            console.log("redis hit")
+            res.send(JSON.parse(result));
+        }
+        else {
+    
+    let user = await User.find({ phoneNumber : phoneNumber });
+    //console.log(user);
+    let email = user[0].userEmailID;
+    let bookings = await Booking.find({userEmailID: email});
+    arr = bookings.map(b=> { 
+                return {
+                    uuid: user[0]._id,
+                    bookingID : b. _id,
+                    userEmailID : b.userEmailID,
+                    travellers : b.travellersEmailID,
+                    dateAdded : b.dateAdded
+                    }
+                });
+                //console.log(email);
+    bookings = await Booking.find({travellersEmailID: email});
+        for(const b of bookings) {
+            const user = await User.find({userEmailID: b.userEmailID});
+            arr.push({
+                uuid: user[0]._id,
+                bookingID : b._id,
+                userEmailID : b.userEmailID,
+                travellers : b.travellersEmailID,
+                dateAdded : b.dateAdded
+            });
+        }
+        redis.setex(phoneNumber, 60, JSON.stringify(arr), function () {
+            res.send(arr);
+        });
+        }
+    });
 
 }
