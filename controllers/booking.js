@@ -5,38 +5,49 @@ var redisClient = require('redis').createClient;
 var redis = redisClient(6379, 'localhost');
 
 exports.postbooking = (req, res, next) => {
+    let flag = 0;
    const userEmailID = req.body.userEmailID;
    const travellers = [req.body.traveller1, req.body.traveller2,req.body.traveller3,req.body.traveller4,req.body.traveller5,req.body.traveller6,req.body.traveller7,req.body.traveller8];
-   User.find({userEmailID: userEmailID}).then(user => {
-    if(!user[0]){
-        res.send("No such user email registered");
-    }
-    else{
-
-    const booking = new Booking({
-        
-        userEmailID: userEmailID,
-        travellersEmailID: travellers
-    })
-    booking.save()
-        .then(result =>{
-            console.log('booking added!');
-            console.log(booking);
-            User.find({userEmailID: booking.userEmailID}).then(user => {
-                res.send({bookingID: booking._id,
-                    uuid: user[0]._id,
-                    userEmailID: booking.userEmailID,
-                    travellers: booking.travellersEmailID,
-                    dateAdded: booking.dateAdded
-                });
-            })
+   travellers.forEach(traveller => {
+       if(traveller == userEmailID){
+           flag = 1;
+       }
+   })
+   if(flag==1){
+    res.send("book again; Traveller's email can't be same as Booker's email ");
+   }else{
+    User.find({userEmailID: userEmailID}).then(user => {
+        if(!user[0]){
+            res.send("No such user email registered");
+        }
+        else{
+    
+        const booking = new Booking({
             
+            userEmailID: userEmailID,
+            travellersEmailID: travellers
         })
-        .catch(err => {
-            console.log(err);
-        })
-    }
-    });
+        booking.save()
+            .then(result =>{
+                console.log('booking added!');
+                console.log(booking);
+                User.find({userEmailID: booking.userEmailID}).then(user => {
+                    res.send({bookingID: booking._id,
+                        uuid: user[0]._id,
+                        userEmailID: booking.userEmailID,
+                        travellers: booking.travellersEmailID,
+                        dateAdded: booking.dateAdded
+                    });
+                })
+                
+            })
+            .catch(err => {
+                console.log(err);
+            })
+        }
+        });
+   }
+   
 }
 
 exports.getbookingID = (req, res, next) => {
