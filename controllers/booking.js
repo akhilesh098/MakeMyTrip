@@ -1,6 +1,8 @@
 const booking = require('../models/booking');
 const Booking = require('../models/booking');
 const User = require('../models/user');
+var redisClient = require('redis').createClient;
+var redis = redisClient(6379, 'localhost');
 
 exports.postbooking = (req, res, next) => {
    const userEmailID = req.body.userEmailID;
@@ -33,7 +35,40 @@ exports.postbooking = (req, res, next) => {
 exports.getbookingID = (req, res, next) => {
 
     const bookingID = req.params.id;
+
+    redis.get(bookingID, function (err, reply) {
+        if (err)  res.send(null);
+        else if (reply){ //Book exists in cache
+    	//console.log(reply);
+    	console.log("Redis hit");
+        res.send(JSON.parse(reply));
+    }
+        else {//console.log(bookingID,"came inside");
     Booking.findById(bookingID).then(booking=> {
+            var uuid;
+        User.find({userEmailID: booking.userEmailID}).then(user => {
+            uuid=user[0]._id;
+            redis.set(bookingID, JSON.stringify({bookingID: booking._id,
+                uuid: uuid,
+                userEmailID: booking.userEmailID,
+                travellers: booking.travellersEmailID,
+                dateAdded: booking.dateAdded
+            }), function () {
+            res.send({bookingID: booking._id,
+                uuid: uuid,
+                userEmailID: booking.userEmailID,
+                travellers: booking.travellersEmailID,
+                dateAdded: booking.dateAdded
+            });
+                    });
+            
+        });
+        
+    })
+	}
+	})
+}
+    /*Booking.findById(bookingID).then(booking=> {
             var uuid;
         User.find({userEmailID: booking.userEmailID}).then(user => {
             uuid=user[0]._id;
@@ -46,10 +81,22 @@ exports.getbookingID = (req, res, next) => {
         });
         
     })
-}
+}*/
+
+
+
+
 exports.getBookingByAcccountID = (req, res, next) => {
     const accountID = req.params.id;
     let bookingID;
+    redis.get(accountID, function (err, reply) {
+        if (err)  res.send(null);
+        else if (reply){ //Book exists in cache
+    	//console.log(reply);
+    	console.log("Redis hit");
+        res.send(JSON.parse(reply));
+    }
+        else {//console.log(bookingID,"came inside");
     User.findById(accountID).then(user => {
         Booking.find({userEmailID: user.userEmailID}).then(booking => {
             var bookingWithUuid = [];
@@ -66,17 +113,13 @@ exports.getBookingByAcccountID = (req, res, next) => {
 
                 bookingWithUuid.push(x);
             })
-
+            redis.set(accountID, JSON.stringify(bookingWithUuid), function () {
             res.send(bookingWithUuid);
-
-            /*res.json(
-                booking.map(b =>
-                  `{ "uuid": "${accountID}","bookingID": "${b._id}", "userEmailID": "${b.userEmailID}","travellers" : "${b.travellersEmailID}","dateAdded" : "${b.dateAdded}"}
-                  `
-                ).join('')
-              )*/
+        });
         })
     })
+}
+})
 }
 exports.getBookingByEmail = async (req, res,next) => {
     const email = req.params.email;

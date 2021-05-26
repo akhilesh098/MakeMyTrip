@@ -2,6 +2,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const axios = require("axios");
+const redis = require("redis");
+const redisPort = 6379
+const client = redis.createClient(redisPort);
 
 const path = require('path');
 const app = express();
@@ -15,6 +19,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 console.log("server up");
 
+client.on("error", (err) => {
+  console.log(err);
+})
 app.use(bookingRoutes);
 
 mongoose
