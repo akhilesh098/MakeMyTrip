@@ -68,23 +68,6 @@ exports.getbookingID = (req, res, next) => {
 	}
 	})
 }
-    /*Booking.findById(bookingID).then(booking=> {
-            var uuid;
-        User.find({userEmailID: booking.userEmailID}).then(user => {
-            uuid=user[0]._id;
-            res.send({bookingID: booking._id,
-                uuid: uuid,
-                userEmailID: booking.userEmailID,
-                travellers: booking.travellersEmailID,
-                dateAdded: booking.dateAdded
-            });
-        });
-        
-    })
-}*/
-
-
-
 
 exports.getBookingByAcccountID = (req, res, next) => {
     const accountID = req.params.id;
@@ -125,30 +108,41 @@ exports.getBookingByEmail = async (req, res,next) => {
     const email = req.params.email;
     let arr = [];
 
+redis.get(email, async (err, result) => {
+    if (err) throw err;
 
-    let user = await User.find({ userEmailID : email });
-    let bookings = await Booking.find({userEmailID: email});
-    arr = bookings.map(b=> { 
-                return {
-                    uuid: user[0]._id,
-                    bookingID : b. _id,
-                    userEmailID : b.userEmailID,
-                    travellers : b.travellersEmailID,
-                    dateAdded : b.dateAdded
-                	}
-    			});
-    
-    bookings = await Booking.find({travellersEmailID: email});
-    for(const b of bookings) {
-    	const user = await User.find({userEmailID: b.userEmailID});
-    	arr.push({
-    		uuid: user[0]._id,
-            bookingID : b._id,
-            userEmailID : b.userEmailID,
-            travellers : b.travellersEmailID,
-            dateAdded : b.dateAdded
-    	});
+    if (result) {
+        console.log("resdis hit")
+        res.send(JSON.parse(result));
     }
-   
-   res.send(arr);
+    else {
+        let user = await User.find({ userEmailID : email });
+        let bookings = await Booking.find({userEmailID: email});
+        arr = bookings.map(b=> { 
+                    return {
+                        uuid: user[0]._id,
+                        bookingID : b. _id,
+                        userEmailID : b.userEmailID,
+                        travellers : b.travellersEmailID,
+                        dateAdded : b.dateAdded
+                        }
+                    });
+        
+        bookings = await Booking.find({travellersEmailID: email});
+        for(const b of bookings) {
+            const user = await User.find({userEmailID: b.userEmailID});
+            arr.push({
+                uuid: user[0]._id,
+                bookingID : b._id,
+                userEmailID : b.userEmailID,
+                travellers : b.travellersEmailID,
+                dateAdded : b.dateAdded
+            });
+        }
+        redis.set(email, JSON.stringify(arr), function () {
+        res.send(arr);
+    });
+    }
+});
+
 }
