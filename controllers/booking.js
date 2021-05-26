@@ -33,25 +33,18 @@ exports.postbooking = (req, res, next) => {
                 console.log('booking added!');
                 console.log(booking);
                 User.find({userEmailID: booking.userEmailID}).then(user => {
-                    redis.del(user[0]._id, function(err, response) {
-                        if (response == 1) {
-                           console.log("Deleted Successfully!")
-                        } else{
-                         console.log("Cannot delete")
-                        }
-                     })
                     redis.del(user[0].phoneNumber, function(err, response) {
                         if (response == 1) {
-                           console.log("Deleted Successfully!")
+                           console.log("Redis Cache for user phoneNumber deleted!")
                         } else{
-                         console.log("Cannot delete")
+                         console.log("No Redis Cache for user phoneNumber Stored")
                         }
                      })
                      redis.del(booking.userEmailID, function(err, response) {
                         if (response == 1) {
-                           console.log("Deleted Successfully!")
+                           console.log("Redis Cache for booking's userEmailID deleted!")
                         } else{
-                         console.log("Cannot delete")
+                         console.log("No Redis Cache for booking's userEmailID Stored")
                         }
                      })
                     res.send({bookingID: booking._id,
@@ -135,7 +128,7 @@ exports.getBookingByAcccountID = (req, res, next) => {
 
                 bookingWithUuid.push(x);
             })
-            redis.setex(accountID, 60, JSON.stringify(bookingWithUuid), function () {
+            redis.setex(accountID, 30, JSON.stringify(bookingWithUuid), function () {
             res.send(bookingWithUuid);
         });
         })
