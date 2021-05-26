@@ -55,7 +55,7 @@ exports.getbookingID = (req, res, next) => {
             var uuid;
         User.find({userEmailID: booking.userEmailID}).then(user => {
             uuid=user[0]._id;
-            redis.set(bookingID, JSON.stringify({bookingID: booking._id,
+            redis.setex(bookingID, 60, JSON.stringify({bookingID: booking._id,
                 uuid: uuid,
                 userEmailID: booking.userEmailID,
                 travellers: booking.travellersEmailID,
@@ -103,7 +103,7 @@ exports.getBookingByAcccountID = (req, res, next) => {
 
                 bookingWithUuid.push(x);
             })
-            redis.set(accountID, JSON.stringify(bookingWithUuid), function () {
+            redis.setex(accountID, 60, JSON.stringify(bookingWithUuid), function () {
             res.send(bookingWithUuid);
         });
         })
@@ -114,7 +114,6 @@ exports.getBookingByAcccountID = (req, res, next) => {
 exports.getBookingByEmail = async (req, res,next) => {
     const email = req.params.email;
     let arr = [];
-
 redis.get(email, async (err, result) => {
     if (err) throw err;
 
@@ -146,7 +145,7 @@ redis.get(email, async (err, result) => {
                 dateAdded : b.dateAdded
             });
         }
-        redis.set(email, JSON.stringify(arr), function () {
+        redis.setex(email, 60, JSON.stringify(arr), function () {
         res.send(arr);
     });
     }
