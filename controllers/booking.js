@@ -33,6 +33,27 @@ exports.postbooking = (req, res, next) => {
                 console.log('booking added!');
                 console.log(booking);
                 User.find({userEmailID: booking.userEmailID}).then(user => {
+                    redis.del(user[0]._id, function(err, response) {
+                        if (response == 1) {
+                           console.log("Deleted Successfully!")
+                        } else{
+                         console.log("Cannot delete")
+                        }
+                     })
+                    redis.del(user[0].phoneNumber, function(err, response) {
+                        if (response == 1) {
+                           console.log("Deleted Successfully!")
+                        } else{
+                         console.log("Cannot delete")
+                        }
+                     })
+                     redis.del(booking.userEmailID, function(err, response) {
+                        if (response == 1) {
+                           console.log("Deleted Successfully!")
+                        } else{
+                         console.log("Cannot delete")
+                        }
+                     })
                     res.send({bookingID: booking._id,
                         uuid: user[0]._id,
                         userEmailID: booking.userEmailID,
@@ -67,7 +88,7 @@ exports.getbookingID = (req, res, next) => {
             var uuid;
         User.find({userEmailID: booking.userEmailID}).then(user => {
             uuid=user[0]._id;
-            redis.setex(bookingID, 60, JSON.stringify({bookingID: booking._id,
+            redis.setex(bookingID, 600, JSON.stringify({bookingID: booking._id,
                 uuid: uuid,
                 userEmailID: booking.userEmailID,
                 travellers: booking.travellersEmailID,
@@ -90,7 +111,6 @@ exports.getbookingID = (req, res, next) => {
 
 exports.getBookingByAcccountID = (req, res, next) => {
     const accountID = req.params.id;
-    let bookingID;
     redis.get(accountID, function (err, reply) {
         if (err)  res.send(null);
         else if (reply){ //Book exists in cache
@@ -130,7 +150,7 @@ redis.get(email, async (err, result) => {
     if (err) throw err;
 
     if (result) {
-        console.log("redis hit")
+        console.log("redis hit");
         res.send(JSON.parse(result));
     }
     else {
@@ -157,7 +177,7 @@ redis.get(email, async (err, result) => {
                 dateAdded : b.dateAdded
             });
         }
-        redis.setex(email, 60, JSON.stringify(arr), function () {
+        redis.setex(email, 600, JSON.stringify(arr), function () {
         res.send(arr);
     });
     }
@@ -203,7 +223,7 @@ exports.getBookingByPhoneNumber = async (req,res,next) => {
                 dateAdded : b.dateAdded
             });
         }
-        redis.setex(phoneNumber, 60, JSON.stringify(arr), function () {
+        redis.setex(phoneNumber, 600, JSON.stringify(arr), function () {
             res.send(arr);
         });
         }
