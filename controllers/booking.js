@@ -6,12 +6,13 @@ var redis = redisClient(6379, 'localhost');
 
 exports.postbooking = (req, res, next) => {
    const userEmailID = req.body.userEmailID;
-   const travellers = [req.body.traveller1, req.body.traveller2];
+   const travellers = [req.body.traveller1, req.body.traveller2,req.body.traveller3,req.body.traveller4,req.body.traveller5,req.body.traveller6,req.body.traveller7,req.body.traveller8];
    User.find({userEmailID: userEmailID}).then(user => {
     if(!user[0]){
         res.send("No such user email registered");
     }
-    });
+    else{
+
     const booking = new Booking({
         
         userEmailID: userEmailID,
@@ -34,6 +35,8 @@ exports.postbooking = (req, res, next) => {
         .catch(err => {
             console.log(err);
         })
+    }
+    });
 }
 
 exports.getbookingID = (req, res, next) => {
